@@ -1,11 +1,3 @@
-// The Nature of Code
-// <http://www.shiffman.net/teaching/nature>
-// Spring 2011
-// Box2DProcessing example
-
-// Basic example of controlling an object with our own motion (by attaching a MouseJoint)
-// Also demonstrates how to know which object was hit
-
 import shiffman.box2d.*;
 import org.jbox2d.common.*;
 import org.jbox2d.dynamics.joints.*;
@@ -14,6 +6,7 @@ import org.jbox2d.collision.shapes.Shape;
 import org.jbox2d.common.*;
 import org.jbox2d.dynamics.*;
 import org.jbox2d.dynamics.contacts.*;
+import processing.serial.*;
 
 // A reference to our box2d world
 Box2DProcessing box2d;
@@ -40,6 +33,16 @@ Haptic haptic;
 float xoff = 0;
 float yoff = 1000;
 
+//IMU values
+Serial Uno;
+String valFromUno;
+int rotX; //rotation X-axis
+int rotY; //rotation Y-axis
+int acceX; //acceleration X-axis
+int acceY; //acceleration Y-axis
+
+//Haptic code send to Arduino
+String hapticStr;
 
 void setup() {
   size(400,700);
@@ -72,11 +75,20 @@ void setup() {
   wallBottom = new Boundary(width/2, height, width, 10);
   
   haptic = new Haptic();
-
+  
+  Uno = new Serial(this, "/dev/cu.usbmodem14301", 115200); //my serial port & baud rate
 }
 
 void draw() {
   background(255);
+  
+  //receive IMU data
+  if(Uno.available() > 0) 
+  {  
+    valFromUno = Uno.readStringUntil('\n');         
+  } 
+  splitIMUData(valFromUno);
+  //after this, do whatever you want with those IMU data
 
   if (random(1) < 0.2) {
     float sz = random(4,8);
@@ -133,6 +145,12 @@ void draw() {
   haptic.updatePosition(box2d.getBodyPixelCoord(ball.body).x,
                         box2d.getBodyPixelCoord(ball.body).y);
   haptic.display();
+  
+  //define haptic id (String) to send to Arduino
+  //let's write a separated function later
+  /* hapticStr = '1';
+  Uno.write(hapticStr);
+  Uno.clear();*/
 }
 
 
@@ -174,4 +192,21 @@ void keyPressed() {
   } else {
     rotation = 0;
   }  
+}
+
+void splitIMUData(String str) {
+  String[] res = str.split(",");
+  try {
+     rotX = Integer.parseInt(res[0]);
+     rotY = Integer.parseInt(res[1]);
+     acceX = Integer.parseInt(res[2]);
+     acceY = Integer.parseInt(res[3]);
+  }
+  catch (NumberFormatException e)
+  {
+     rotX = 0;
+     rotY = 0;
+     acceX = 0;
+     acceY = 0;
+  }
 }
