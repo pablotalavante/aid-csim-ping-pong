@@ -35,5 +35,4 @@ class Haptic {
       }
     popMatrix();
   }
-    
 }

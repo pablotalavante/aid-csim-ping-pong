@@ -1,17 +1,12 @@
-// A circular particle
-
 class Particle {
-
   // We need to keep track of a Body and a radius
   Body body;
   float r;
-
   color col;
 
-
+  // Constructor
   Particle(float x, float y, float r_) {
     r = r_;
-    // This function puts the particle in the Box2d world
     makeBody(x, y, r);
     body.setUserData(this);
     col = color(175);
@@ -39,8 +34,6 @@ class Particle {
     return false;
   }
 
-
-  // 
   void display() {
     // We look at each body and get its screen position
     Vec2 pos = box2d.getBodyPixelCoord(body);

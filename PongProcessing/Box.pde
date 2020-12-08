@@ -1,7 +1,4 @@
-// A rectangular box
-
 class Box {
-
   // We need to keep track of a Body and a width and height
   Body body;
   float w;
@@ -13,6 +10,7 @@ class Box {
     float y = y_;
     w = 120;
     h = 24;
+    
     // Add the box to the box2d world
     makeBody(new Vec2(x, y), w, h);
     body.setUserData(this);

@@ -1,10 +1,10 @@
 // Class to describe the spring joint (displayed as a line)
-
 class Spring {
 
   // This is the box2d object we need to create
   MouseJoint mouseJoint;
 
+  // Constructor
   Spring() {
     // At first it doesn't exist
     mouseJoint = null;
@@ -37,9 +37,9 @@ class Spring {
   }
 
 
-  // This is the key function where
-  // we attach the spring to an x,y location
-  // and the Box object's location
+  /* This is the key function where 
+  we attach the spring to an x,y location 
+  and the Box object's location */
   void bind(float x, float y, Box box) {
     // Define the joint
     MouseJointDef md = new MouseJointDef();
@@ -60,7 +60,7 @@ class Spring {
     // Wake up body!
     //box.body.wakeUp();
 
-    // Make the joint!
+    // Make the joint
     mouseJoint = (MouseJoint) box2d.world.createJoint(md);
   }
 
