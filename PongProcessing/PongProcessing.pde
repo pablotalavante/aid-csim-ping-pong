@@ -85,9 +85,11 @@ void draw() {
   //receive IMU data
   if(Uno.available() > 0) 
   {  
-    valFromUno = Uno.readStringUntil('\n');         
+    valFromUno = Uno.readStringUntil('\n'); 
+    if (valFromUno != null) {
+      splitIMUData(valFromUno);
+    }
   } 
-  splitIMUData(valFromUno);
   //after this, do whatever you want with those IMU data
 
   if (random(1) < 0.2) {
@@ -209,4 +211,8 @@ void splitIMUData(String str) {
      acceX = 0;
      acceY = 0;
   }
+  println(rotX);
+  println(rotY);
+  println(acceX);
+  println(acceY);
 }
