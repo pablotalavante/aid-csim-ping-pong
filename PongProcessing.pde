@@ -1,13 +1,3 @@
-// The Nature of Code
-// <http://www.shiffman.net/teaching/nature>
-// Spring 2011
-// Box2DProcessing example
-
-// Basic example of controlling an object with our own motion (by attaching a MouseJoint)
-// Also demonstrates how to know which object was hit
-
-// https://arxiv.org/pdf/2006.10214.pdf
-
 import shiffman.box2d.*;
 import org.jbox2d.common.*;
 import org.jbox2d.dynamics.joints.*;
@@ -18,31 +8,18 @@ import org.jbox2d.dynamics.*;
 import org.jbox2d.dynamics.contacts.*;
 import processing.serial.*;
 
-import oscP5.*;
-import netP5.*;
-
-// import interface libraries
-OscP5 oscP5;
-NetAddress myRemoteLocation;
-
-float topx, topy, botx, boty;
-float xhand, yhand;
-
-PVector[] mouth = new PVector[24];
-
 // A reference to our box2d world
 Box2DProcessing box2d;
 
 // Just a single box this time
 Box box;
-Box cpu;
 
 // An ArrayList of particles that will fall on the surface
 ArrayList<Particle> particles;
 
 Particle ball;
 // The Spring that will attach to the box from the mouse
-Spring spring, springCPU;
+Spring spring;
 
 Boundary wallL, wallR, wallTop, wallBottom;
 
@@ -56,7 +33,6 @@ Haptic haptic;
 float xoff = 0;
 float yoff = 1000;
 
-
 //IMU values
 Serial Uno;
 String valFromUno;
@@ -69,7 +45,7 @@ int acceY; //acceleration Y-axis
 String hapticStr;
 
 void setup() {
-  size(700,700);
+  size(400,700);
   smooth();
 
   // Initialize box2d physics and create the world
@@ -81,46 +57,44 @@ void setup() {
 
   // Make the box
   box = new Box(width/2, height/2);
-  cpu = new Box(width/2, 40);
-  
-  // Make the spring (it doesn't really get initialized until the mouse is clicked)
-  spring = new Spring(500, 2);
-  spring.bind(width/2, height/2, box);
-  
-  springCPU = new Spring(100, 0.8);
-  springCPU.bind(width/2, 40, cpu);
 
-  ball = new Particle(width/2, 100, 10);
-  ball.body.applyForce(new Vec2(random(-500, 500), -7000), ball.body.getPosition());
+  // Make the spring (it doesn't really get initialized until the mouse is clicked)
+  spring = new Spring();
+  spring.bind(width/2, height/2, box);
+
+  // Create the empty list
+  particles = new ArrayList<Particle>();
+
+  ball = new Particle(width/2, 0, 10);
+  ball.body.applyForce(new Vec2(random(-10, 10), -2000), ball.body.getPosition());
   
   // create boundaries
   wallR = new Boundary(width, height/2, 10, height);
   wallL = new Boundary(0, height/2, 10, height);
-  
   wallTop = new Boundary(width/2, 0, width, 10);
   wallBottom = new Boundary(width/2, height, width, 10);
   
   haptic = new Haptic();
   
-  oscP5 = new OscP5(this, 8008);
-  // myRemoteLocation = new NetAddress("127.0.0.1", 1234);
-  
-  xhand = width/2;
-  yhand = height/2;
-
-  Uno = new Serial(this, "/dev/cu.usbmodem14201", 115200); //my serial port & baud rate
-
+  Uno = new Serial(this, "/dev/cu.usbmodem14301", 115200); //my serial port & baud rate
 }
 
 void draw() {
   background(255);
   
-  IMUData();
-  
+  //receive IMU data
+  if(Uno.available() > 0) 
+  {  
+    valFromUno = Uno.readStringUntil('\n');         
+  } 
+  splitIMUData(valFromUno);
+  //after this, do whatever you want with those IMU data
+
   if (random(1) < 0.2) {
     float sz = random(4,8);
     //particles.add(new Particle(width/2,-20,sz));
   }
+
 
   // We must always step through time!
   box2d.step();
@@ -131,24 +105,35 @@ void draw() {
   xoff += 0.00;
   yoff += 0.00;
 
+  // This is tempting but will not work!
+  // box.body.setXForm(box2d.screenToWorld(x,y),0);
+
+  // Instead update the spring which pulls the mouse along
   if (true) {
-    //spring.update(mouseX,mouseY);
-    spring.update(xhand, yhand);
+    spring.update(mouseX,mouseY);
     spring.display();
-    
-    springCPU.update(box2d.getBodyPixelCoord(ball.body).x, 40);
-    springCPU.display();
   } else {
     spring.update(x,y);
   }
   
+  println(box.body.getAngle());
   box.body.setAngularVelocity(rotation-box.body.getAngle());
 
+  // Look at all particles
+  for (int i = particles.size()-1; i >= 0; i--) {
+    Particle p = particles.get(i);
+    p.display();
+    // Particles that leave the screen, we delete them
+    // (note they have to be deleted from both the box2d world and our list
+    if (p.done()) {
+      particles.remove(i);
+    }
+  }
   ball.display();
 
   // Draw the box
   box.display();
-  cpu.display();
+
   // Draw the spring
   spring.display();
   
@@ -166,18 +151,38 @@ void draw() {
   /* hapticStr = '1';
   Uno.write(hapticStr);
   Uno.clear();*/
-  
-   stroke(5);
-   rectMode(CORNERS);
-   //rect((1-topx)*width, (topy+0.5)*height, (1-botx)*width, (boty+0.5)*height);
-   //println((1-topx)*width, topy*height, (1-botx)*width, boty*height);
-   // rect(200, 200, 500, 500);
-   stroke(1);
-   xhand = ((1-topx)*width + (1-botx)*width)/2;
-   yhand = (boty+0.5)*height;
 }
 
 
+// Collision event functions!
+void beginContact(Contact cp) {
+  // Get both fixtures
+  Fixture f1 = cp.getFixtureA();
+  Fixture f2 = cp.getFixtureB();
+  // Get both bodies
+  Body b1 = f1.getBody();
+  Body b2 = f2.getBody();
+  // Get our objects that reference these bodies
+  Object o1 = b1.getUserData();
+  Object o2 = b2.getUserData();
+
+  // If object 1 is a Box, then object 2 must be a particle
+  // Note we are ignoring particle on particle collisions
+  if (o1.getClass() == Box.class) {
+    Particle p = (Particle) o2;
+    p.change();
+  } 
+  // If object 2 is a Box, then object 1 must be a particle
+  else if (o2.getClass() == Box.class) {
+    Particle p = (Particle) o1;
+    p.change();
+  }
+}
+
+
+// Objects stop touching each other
+void endContact(Contact cp) {
+}
 
 void keyPressed() {
   if (key == 'a'){
@@ -186,44 +191,12 @@ void keyPressed() {
     rotation = 0.8;
   } else {
     rotation = 0;
-  }
-}
-
-void oscEvent(OscMessage msg) {
-  println(msg);
- if(msg.checkAddrPattern("/boundingBox/topLeft")==true) {
-      topx = msg.get(0).floatValue()/1280;
-      topy = msg.get(1).floatValue()/1280;
-      //println("xtop", topx);
-      println("ytop", topy);
- }
- if(msg.checkAddrPattern("/boundingBox/bottomRight")==true) { 
-      botx = msg.get(0).floatValue()/1280;
-      boty = msg.get(1).floatValue()/1280;
-      //println("xbot", botx);
-      println("ybot", boty);
- }
-}
-
-void IMUData(){
-  //receive IMU data
-  if(Uno.available() > 0) 
-  {  
-    valFromUno = Uno.readStringUntil('\n');         
-  } 
-  splitIMUData(valFromUno);
-  //after this, do whatever you want with those IMU data
-
-  if (random(1) < 0.2) {
-    float sz = random(4,8);
-    //particles.add(new Particle(width/2,-20,sz));
-  }
+  }  
 }
 
 void splitIMUData(String str) {
-  
+  String[] res = str.split(",");
   try {
-     String[] res = str.split(",");
      rotX = Integer.parseInt(res[0]);
      rotY = Integer.parseInt(res[1]);
      acceX = Integer.parseInt(res[2]);
@@ -236,5 +209,4 @@ void splitIMUData(String str) {
      acceX = 0;
      acceY = 0;
   }
-  println(rotX, rotY, acceX, acceY);
 }
