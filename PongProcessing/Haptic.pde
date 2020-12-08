@@ -1,9 +1,9 @@
 class Haptic {
   int x = 3;
   int y = 3;
-  
   float[][] hapticPosition = new float[3][3];
   
+  // Constructor
   Haptic(){
     for(int i=0; i<x; i++){
       for(int j=0; j<y; j++){

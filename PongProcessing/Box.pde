@@ -1,5 +1,5 @@
 class Box {
-  // We need to keep track of a Body and a width and height
+  // A Body with a width and height
   Body body;
   float w;
   float h;
@@ -11,12 +11,12 @@ class Box {
     w = 120;
     h = 24;
     
-    // Add the box to the box2d world
+    // Add the box to the Box2d world
     makeBody(new Vec2(x, y), w, h);
     body.setUserData(this);
   }
 
-  // This function removes the particle from the box2d world
+  // Remove the particle from the Box2d world
   void killBody() {
     box2d.destroyBody(body);
   }
@@ -28,11 +28,11 @@ class Box {
     return inside;
   }
 
-  // Drawing the box
+  // Draw the box
   void display() {
-    // We look at each body and get its screen position
+    // Get screen position
     Vec2 pos = box2d.getBodyPixelCoord(body);
-    // Get its angle of rotation
+    // Get angle of rotation
     float a = body.getAngle();
 
     rectMode(PConstants.CENTER);
@@ -45,8 +45,9 @@ class Box {
     popMatrix();
   }
 
-  // This function adds the rectangle to the box2d world
+  // Add the rectangle to the Box2d world
   void makeBody(Vec2 center, float w_, float h_) {
+    
     // Define and create the body
     BodyDef bd = new BodyDef();
     bd.type = BodyType.DYNAMIC;
@@ -62,6 +63,7 @@ class Box {
     // Define a fixture
     FixtureDef fd = new FixtureDef();
     fd.shape = sd;
+    
     // Parameters that affect physics
     fd.density = 1;
     fd.friction = 0.3;
@@ -70,7 +72,7 @@ class Box {
     body.createFixture(fd);
     //body.setMassFromShapes();
 
-    // Give it some initial random velocity
+    // Initialize random velocity
     body.setLinearVelocity(new Vec2(random(-5, 5), random(2, 5)));
     body.setAngularVelocity(0);
   }

@@ -1,5 +1,5 @@
 class Boundary {
-  // A boundary is a body with x, y, width, and height
+  // A body with x, y, width, and height
   Body b;
   float x;
   float y;
@@ -13,7 +13,7 @@ class Boundary {
     w = w_;
     h = h_;
 
-    // Define the polygon and box2d coordinates
+    // Define the polygon and Box2d coordinates
     PolygonShape sd = new PolygonShape();
     float box2dW = box2d.scalarPixelsToWorld(w/2);
     float box2dH = box2d.scalarPixelsToWorld(h/2);
@@ -30,7 +30,7 @@ class Boundary {
     b.setUserData(this);
   }
 
-  // Draw the boundary, if it were at an angle we'd have to do something fancier
+  // Draw the boundary
   void display() {
     fill(0);
     stroke(0);

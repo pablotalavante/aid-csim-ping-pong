@@ -1,5 +1,5 @@
 class Particle {
-  // We need to keep track of a Body and a radius
+  // a Body with a radius and a color
   Body body;
   float r;
   color col;
@@ -12,21 +12,21 @@ class Particle {
     col = color(175);
   }
 
-  // This function removes the particle from the box2d world
+  // Remove the particle from the Box2d world
   void killBody() {
     box2d.destroyBody(body);
   }
 
-  // Change color when hit
+  // Change color when the ball hit the paddles
   void change() {
     col = color(255, 0, 0);
   }
 
-  // Is the particle ready for deletion?
+  // Check if the particle ready for removal
   boolean done() {
-    // Let's find the screen position of the particle
+    // Check the screen position 
     Vec2 pos = box2d.getBodyPixelCoord(body);
-    // Is it off the bottom of the screen?
+    // Check if it's at the bottom of the screen
     if (pos.y > height+r*2) {
       killBody();
       return true;
@@ -35,10 +35,12 @@ class Particle {
   }
 
   void display() {
-    // We look at each body and get its screen position
+    
+    // Get screen position
     Vec2 pos = box2d.getBodyPixelCoord(body);
-    // Get its angle of rotation
+    // Get angle of rotation
     float a = body.getAngle();
+    
     pushMatrix();
     translate(pos.x, pos.y);
     rotate(a);
@@ -46,7 +48,8 @@ class Particle {
     stroke(0);
     strokeWeight(1);
     ellipse(0, 0, r*2, r*2);
-    // Let's add a line so we can see the rotation
+    
+    // Add a line to see the rotation
     line(0, 0, r, 0);
     popMatrix();
   }
@@ -66,6 +69,7 @@ class Particle {
 
     FixtureDef fd = new FixtureDef();
     fd.shape = cs;
+    
     // Parameters that affect physics
     fd.density = 1;
     fd.friction = 0.01;
