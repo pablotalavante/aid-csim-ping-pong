@@ -13,16 +13,16 @@ void setup() {
 
 void loop() {
   
-  Serial.print(myIMU.readFloatGyroX(), 0); //rotation X-axis - roll
+  Serial.print(myIMU.readFloatGyroX(), 3); //rotation X-axis - roll
   Serial.print(",");
-  Serial.print(myIMU.readFloatGyroY(), 0); //rotation Y-axis - pitch
+  Serial.print(myIMU.readFloatGyroY(), 3); //rotation Y-axis - pitch
   //Serial.print(",");
   //Serial.print(myIMU.readFloatGyroZ(), 0); //rotation Z-axis - yaw
   Serial.print(",");
   
-  Serial.print(myIMU.readFloatAccelX(), 0);
+  Serial.print(myIMU.readFloatAccelX(), 3);
   Serial.print(",");
-  Serial.print(myIMU.readFloatAccelY(), 0);
+  Serial.print(myIMU.readFloatAccelY(), 3);
   //Serial.print(",");
   //Serial.print(imu.readFloatAccelZ(), 0);
   Serial.println();
