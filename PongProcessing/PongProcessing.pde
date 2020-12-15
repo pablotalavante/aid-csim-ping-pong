@@ -19,7 +19,7 @@ float handX, handY;
 
 /* IMU + vibromotor serial comm */
 Serial mySerial;
-static final String SERIAL_PORT = "/dev/cu.usbmodem14301"; // check the correct port in Arduino
+String SERIAL_PORT = Serial.list()[0]; //"/dev/cu.usbmodem14301"; // check the correct port in Arduino
 static final int BAUDRATE = 115200; // check the correct baud rate
 String valFromSerial;
 float rotX, rotY, acceX, acceY; 
@@ -111,6 +111,7 @@ void draw() {
 
   /* Update global position based on OSC data */
   if (true) {
+    // springHuman.update(mouseX, mouseY);
     springHuman.update(handX, handY);
     springHuman.display();
     springCPU.update(box2d.getBodyPixelCoord(ball.body).x, 40);
@@ -140,7 +141,7 @@ void draw() {
   /* Send haptic feedback to Arduino */
   haptic.updatePosition(box2d.getBodyPixelCoord(ball.body).x, box2d.getBodyPixelCoord(ball.body).y);
   haptic.display(); // display haptic patterns
-  hapticStr = getHapticId(); // define haptic id 
+  hapticStr = getHapticData(); // define haptic position = [direction, distance]
   mySerial.write(hapticStr); // send to Arduino
   mySerial.clear();
   
@@ -192,14 +193,13 @@ void checkIMUData(){
       println("IMU:");
       println(rotX, rotY, acceX, acceY);
     }  
-    
     rotation = rotY/100;
     // TODO: acceleration
   } 
 }
 
-String getHapticId() {
+String getHapticData() {
   String res = "";
-  // TODO: define ids based on position
+  // TODO: define data based on [direction, distance]
   return res;
 }
