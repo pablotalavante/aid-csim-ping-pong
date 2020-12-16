@@ -20,7 +20,7 @@ float handX, handY;
 
 /* IMU + vibromotor serial comm */
 Serial mySerial;
-static final String SERIAL_PORT = "/dev/cu.usbmodem14201"; // check the correct port in Arduino
+static final String SERIAL_PORT = Serial.list()[0]; // check the correct port in Arduino
 static final int BAUDRATE = 115200; // check the correct baud rate
 String valFromSerial;
 float rotX, rotY, acceX, acceY; 

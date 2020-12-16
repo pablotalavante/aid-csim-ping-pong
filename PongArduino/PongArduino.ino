@@ -21,18 +21,17 @@ void loop() {
   if (Serial.available()) { 
     hapticData = Serial.readStringUntil('\n'); 
   }
-  //splitHapticData();
-
-  Serial.println(hapticData);
+  splitHapticData();
   
-  //vibrate(hapticPos, hapticDistance);
-  // hapticData = ""; // TODO: interrupt?
+  vibrate(100, 100);
+  //vibrate(hapticX, hapticY);
+  // TODO: interrupt?
   
-  //sendIMUData();
+  sendIMUData();
   delay(500);
 }
 
-/* send IMU data over serial port 
+/* send IMU data over serial port */
 void sendIMUData() {
   Serial.print(myIMU.readFloatGyroX(), 3); // rotation X-axis - roll
   Serial.print(",");
@@ -47,57 +46,44 @@ void sendIMUData() {
   // Serial.print(",");
   // Serial.print(imu.readFloatAccelZ(), 0);
   Serial.println();
-}*/
+}
 
-/* split haptic data received from Processing 
+/* split haptic data received from Processing */
 void splitHapticData() {
   int commaIndex = hapticData.indexOf(',');
   hapticX = hapticData.substring(0, commaIndex).toFloat();
   hapticY = hapticData.substring(commaIndex + 1).toFloat();
-}*/
+}
 
-/* control motors to send vibrotactile feedback 
-void vibrate(String id, int dis) { 
+/* control motors to send vibrotactile feedback */
+void vibrate(float x, float y) { 
+  int16_t pwm1 = 0;
+  int16_t pwm2 = 0;
+  int16_t pwm3 = 0;
+  int16_t pwm4 = 0;
   
-  if (dis == 0) { //collision
-    changeDelay(500);
-    controlMotor(1023, 1023, 1023, 1023);
-    id = "";
-  } else if (dis > 0 && dis <= 5) {
-    changeDelay(500);
-  } else if (dis > 5 && dis <= 10) {
-    changeDelay(1000);
-  } else if (dis > 10) {
-    changeDelay(2000);
+  x = constrain(x, -500, 500);
+  y = constrain(y, -500, 500);
+   
+  if (x < 0) {
+  // M2 
+  pwm2 = (int16_t) map(x, 0, 500, 1023, 0);   
+  } else {
+  // M4  
+  pwm4 = (int16_t) map(x, 0, 500, 1023, 0);  
   }
-  
-  if (id == '1') { // 90 degree above
-    controlMotor(555, 555, 0, 0);
-  }
-  else if (id == '2') { // 90 degree below   
-    controlMotor(0, 0, 555, 555);   
-  }
-  else if (id == '3') { // 90 degree left    
-    controlMotor(555, 0, 0, 555);   
-  }
-  else if (id == '4') { // 90 degree right  
-    controlMotor(0, 555, 555, 0);          
-  }
-  else if (id == '5') { // 45 degree up-left  
-    controlMotor(1023, 0, 0, 0);        
-  }
-  else if (id == '6') { // 45 degree up-right  
-    controlMotor(0, 1023, 0, 0);           
-  }
-  else if (id == '7') { // 45 degree down-left    
-    controlMotor(0, 0, 0, 1023);        
-  }
-  else if (id == '8') { // 45 degree down-right   
-    controlMotor(0, 0, 1023, 0);        
+
+  if ( y < 0) {
+  // M3  
+  pwm3 = (int16_t) map(x, 0, 500, 1023, 0); 
+  } else {
+  // M1  
+  pwm1 = (int16_t) map(x, 0, 500, 1023, 0); 
   }
   
+  controlMotor(pwm1, pwm2, pwm3, pwm4);
   delay(10);
-} */
+} 
 
 /* sending PWM signals to 4 motors */
 void controlMotor(int16_t m1_pwm, int16_t m2_pwm, int16_t m3_pwm, int16_t m4_pwm) { //0->1023
@@ -123,7 +109,7 @@ void deactivateDriver() {
 void i2cWrite2bytes(uint8_t address,uint8_t channel, uint16_t data) { 
   Wire.beginTransmission(address); 
   Wire.write(channel);
-  Wire.write(data>>8);
+  Wire.write(data<<8); //data>>8 tried
   Wire.write(data);
   Wire.endTransmission();
   delay(15);
