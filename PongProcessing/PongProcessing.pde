@@ -20,7 +20,7 @@ float handX, handY;
 
 /* IMU + vibromotor serial comm */
 Serial mySerial;
-static final String SERIAL_PORT = "/dev/cu.usbmodem14301"; // check the correct port in Arduino
+static final String SERIAL_PORT = "/dev/cu.usbmodem14201"; // check the correct port in Arduino
 static final int BAUDRATE = 115200; // check the correct baud rate
 String valFromSerial;
 float rotX, rotY, acceX, acceY; 
@@ -220,7 +220,7 @@ String getHapticId(float x_paddle, float y_paddle, float x_ball, float y_ball) {
     // println(v.x);
   popMatrix();
   
-  res += v.x + "," + v.y + "/n";
-  
+  res += v.x + "," + v.y + "\n";
+  println(res);
   return res;
 }
