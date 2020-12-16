@@ -15,7 +15,7 @@ void setup() {
   myIMU.begin();
 
   delay(500);
-  
+  Wire.begin();
   enableDriver();
   controlMotor(0, 0, 0, 0);
 }
