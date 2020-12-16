@@ -12,6 +12,7 @@ float hapticY;
 void setup() {
   Serial.begin(115200); // check the Serial Monitor's baud rate
   myIMU.begin();
+  Wire.begin();
   enableDriver();
   controlMotor(0, 0, 0, 0);
 }
@@ -67,18 +68,18 @@ void vibrate(float x, float y) {
    
   if (x < 0) {
   // M2 
-  pwm2 = (int16_t) map(x, 0, 500, 1023, 0);   
+  pwm2 = (int16_t) map(x, 0, 500, 255, 0);   
   } else {
   // M4  
-  pwm4 = (int16_t) map(x, 0, 500, 1023, 0);  
+  pwm4 = (int16_t) map(x, 0, 500, 255, 0);  
   }
 
   if ( y < 0) {
   // M3  
-  pwm3 = (int16_t) map(x, 0, 500, 1023, 0); 
+  pwm3 = (int16_t) map(x, 0, 500, 255, 0); 
   } else {
   // M1  
-  pwm1 = (int16_t) map(x, 0, 500, 1023, 0); 
+  pwm1 = (int16_t) map(x, 0, 500, 255, 0); 
   }
   
   controlMotor(pwm1, pwm2, pwm3, pwm4);
@@ -109,7 +110,7 @@ void deactivateDriver() {
 void i2cWrite2bytes(uint8_t address,uint8_t channel, uint16_t data) { 
   Wire.beginTransmission(address); 
   Wire.write(channel);
-  Wire.write(data<<8); //data>>8 tried
+  Wire.write(data>>8); // TODO: check
   Wire.write(data);
   Wire.endTransmission();
   delay(15);

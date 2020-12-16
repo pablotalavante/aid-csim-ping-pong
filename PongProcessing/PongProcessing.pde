@@ -113,8 +113,8 @@ void draw() {
   } */
 
   /* Update global position based on OSC data */
-  //springHuman.update(handX, handY);
-  springHuman.update(mouseX, mouseY);
+  springHuman.update(handX, handY);
+  // springHuman.update(mouseX, mouseY);
   springHuman.display();
   springCPU.update(box2d.getBodyPixelCoord(ball.body).x, 40);
   springCPU.display();
@@ -128,8 +128,7 @@ void draw() {
   
   /* Update local rotation based on serial data */
   humanPlayer.body.setAngularVelocity(rotation);// - humanPlayer.body.getAngle());
-  // TODO: update acceleration
-  // humanPlayer.body.setLinearVelocity();
+  // TODO: update acceleration?
 
   /* Display all graphic elements */
   wallR.display();
@@ -143,10 +142,12 @@ void draw() {
   /* Send haptic feedback to Arduino */
   haptic.updatePosition(box2d.getBodyPixelCoord(ball.body).x, box2d.getBodyPixelCoord(ball.body).y);
   haptic.display(); // display haptic patterns
-  hapticStr = getHapticId(box2d.getBodyPixelCoord(humanPlayer.body).x,
+  
+  hapticStr = getHapticData(box2d.getBodyPixelCoord(humanPlayer.body).x,
               box2d.getBodyPixelCoord(humanPlayer.body).y,
               box2d.getBodyPixelCoord(ball.body).x,
               box2d.getBodyPixelCoord(ball.body).y); // define haptic id 
+              
   mySerial.write(hapticStr); // send to Arduino
   mySerial.clear();
   
@@ -206,18 +207,16 @@ void checkIMUData(){
   } 
 }
 
-String getHapticId(float x_paddle, float y_paddle, float x_ball, float y_ball) {
+String getHapticData(float x_paddle, float y_paddle, float x_ball, float y_ball) {
   String res = "";
   PVector v = new PVector(x_paddle - x_ball, y_paddle - y_ball);
   v.rotate(PI/4);
-  
-  // TODO: define ids based on position
- // res = "position1,distance1,position2" 
+ 
   pushMatrix();
-    translate(400, 400);
-    rotate(-PI/4);
-    // line(0, 0, -v.x, -v.y);
-    // println(v.x);
+  translate(400, 400);
+  rotate(-PI/4);
+  // line(0, 0, -v.x, -v.y);
+  // println(v.x);
   popMatrix();
   
   res += v.x + "," + v.y + "\n";
