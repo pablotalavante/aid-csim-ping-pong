@@ -12,6 +12,7 @@ import processing.serial.*;
 
 /* HandPose OSC comm */
 OscP5 myOSC;
+
 // NetAddress myRemoteLocation;
 static final int OSC_PORT = 8008;
 float topX, topY, botX, botY;
@@ -19,7 +20,7 @@ float handX, handY;
 
 /* IMU + vibromotor serial comm */
 Serial mySerial;
-String SERIAL_PORT = Serial.list()[0]; //"/dev/cu.usbmodem14301"; // check the correct port in Arduino
+static final String SERIAL_PORT = "/dev/cu.usbmodem14201"; // check the correct port in Arduino
 static final int BAUDRATE = 115200; // check the correct baud rate
 String valFromSerial;
 float rotX, rotY, acceX, acceY; 
@@ -43,6 +44,8 @@ float rotation = 0; // Paddle rotation
 
 /* Haptic feedback */
 Haptic haptic; // The matrix displaying haptic patterns
+
+final static float sqrt2div2 = sqrt(2)/2;
 
 void setup() {
   
@@ -110,13 +113,12 @@ void draw() {
   } */
 
   /* Update global position based on OSC data */
-  if (true) {
-    // springHuman.update(mouseX, mouseY);
-    springHuman.update(handX, handY);
-    springHuman.display();
-    springCPU.update(box2d.getBodyPixelCoord(ball.body).x, 40);
-    springCPU.display();
-  } 
+  //springHuman.update(handX, handY);
+  springHuman.update(mouseX, mouseY);
+  springHuman.display();
+  springCPU.update(box2d.getBodyPixelCoord(ball.body).x, 40);
+  springCPU.display();
+   
   // else {
     // springHuman.update(width/2, height/2);
     // Make an x,y coordinate out of perlin noise
@@ -125,7 +127,7 @@ void draw() {
   //} 
   
   /* Update local rotation based on serial data */
-  humanPlayer.body.setAngularVelocity(rotation - humanPlayer.body.getAngle());
+  humanPlayer.body.setAngularVelocity(rotation);// - humanPlayer.body.getAngle());
   // TODO: update acceleration
   // humanPlayer.body.setLinearVelocity();
 
@@ -141,7 +143,10 @@ void draw() {
   /* Send haptic feedback to Arduino */
   haptic.updatePosition(box2d.getBodyPixelCoord(ball.body).x, box2d.getBodyPixelCoord(ball.body).y);
   haptic.display(); // display haptic patterns
-  hapticStr = getHapticData(); // define haptic position = [direction, distance]
+  hapticStr = getHapticId(box2d.getBodyPixelCoord(humanPlayer.body).x,
+              box2d.getBodyPixelCoord(humanPlayer.body).y,
+              box2d.getBodyPixelCoord(ball.body).x,
+              box2d.getBodyPixelCoord(ball.body).y); // define haptic id 
   mySerial.write(hapticStr); // send to Arduino
   mySerial.clear();
   
@@ -193,13 +198,29 @@ void checkIMUData(){
       println("IMU:");
       println(rotX, rotY, acceX, acceY);
     }  
-    rotation = rotY/100;
+    
+    rotation = -rotY/100 + 0.9;
+    humanPlayer.body.applyForce(new Vec2(5000*acceX, -5000*acceY),
+                              box2d.coordPixelsToWorld(mouseX, mouseY));
     // TODO: acceleration
   } 
 }
 
-String getHapticData() {
+String getHapticId(float x_paddle, float y_paddle, float x_ball, float y_ball) {
   String res = "";
-  // TODO: define data based on [direction, distance]
+  PVector v = new PVector(x_paddle - x_ball, y_paddle - y_ball);
+  v.rotate(-PI/4);
+  
+  // TODO: define ids based on position
+ // res = "position1,distance1,position2" 
+  pushMatrix();
+    translate(400, 400);
+    rotate(-PI/4);
+    // line(0, 0, -v.x, -v.y);
+    // println(v.x);
+  popMatrix();
+  
+  res += v.x + "," + v.y + "/n";
+  
   return res;
 }
