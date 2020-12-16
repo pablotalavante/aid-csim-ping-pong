@@ -209,7 +209,7 @@ void checkIMUData(){
 String getHapticId(float x_paddle, float y_paddle, float x_ball, float y_ball) {
   String res = "";
   PVector v = new PVector(x_paddle - x_ball, y_paddle - y_ball);
-  v.rotate(-PI/4);
+  v.rotate(PI/4);
   
   // TODO: define ids based on position
  // res = "position1,distance1,position2" 
