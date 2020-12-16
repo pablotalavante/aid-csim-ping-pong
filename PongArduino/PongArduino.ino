@@ -6,8 +6,8 @@ uint8_t i2CAddressMotor = 0x30;
 LSM6DS3 myIMU(I2C_MODE, 0x6A); 
 
 String hapticData;
-String hapticPos; // representing the position of the ball in terms of direction
-int hapticDistance; // representing the position of the ball in terms of distance
+float hapticX; 
+float hapticY; 
 
 void setup() {
   Serial.begin(115200); // check the Serial Monitor's baud rate
@@ -21,16 +21,18 @@ void loop() {
   if (Serial.available()) { 
     hapticData = Serial.readStringUntil('\n'); 
   }
-  splitHapticData();
+  //splitHapticData();
+
+  Serial.println(hapticData);
   
-  vibrate(hapticPos, hapticDistance);
+  //vibrate(hapticPos, hapticDistance);
   // hapticData = ""; // TODO: interrupt?
   
-  sendIMUData();
+  //sendIMUData();
   delay(500);
 }
 
-/* send IMU data over serial port */
+/* send IMU data over serial port 
 void sendIMUData() {
   Serial.print(myIMU.readFloatGyroX(), 3); // rotation X-axis - roll
   Serial.print(",");
@@ -45,16 +47,16 @@ void sendIMUData() {
   // Serial.print(",");
   // Serial.print(imu.readFloatAccelZ(), 0);
   Serial.println();
-}
+}*/
 
-/* split haptic data received from Processing */
+/* split haptic data received from Processing 
 void splitHapticData() {
   int commaIndex = hapticData.indexOf(',');
-  hapticPos = hapticData.substring(0, commaIndex);
-  hapticDistance = hapticData.substring(commaIndex + 1).toInt();
-}
+  hapticX = hapticData.substring(0, commaIndex).toFloat();
+  hapticY = hapticData.substring(commaIndex + 1).toFloat();
+}*/
 
-/* control motors to send vibrotactile feedback */
+/* control motors to send vibrotactile feedback 
 void vibrate(String id, int dis) { 
   
   if (dis == 0) { //collision
@@ -95,7 +97,7 @@ void vibrate(String id, int dis) {
   }
   
   delay(10);
-} 
+} */
 
 /* sending PWM signals to 4 motors */
 void controlMotor(int16_t m1_pwm, int16_t m2_pwm, int16_t m3_pwm, int16_t m4_pwm) { //0->1023
