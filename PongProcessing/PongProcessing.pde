@@ -20,7 +20,7 @@ float handX, handY;
 
 /* IMU + vibromotor serial comm */
 Serial mySerial;
-static final String SERIAL_PORT = Serial.list()[0]; // check the correct port in Arduino
+static final String SERIAL_PORT = Serial.list()[1]; // check the correct port in Arduino
 static final int BAUDRATE = 115200; // check the correct baud rate
 String valFromSerial;
 float rotX, rotY, acceX, acceY; 
@@ -45,10 +45,9 @@ float rotation = 0; // Paddle rotation
 /* Haptic feedback */
 Haptic haptic; // The matrix displaying haptic patterns
 
-final static float sqrt2div2 = sqrt(2)/2;
-
 void setup() {
-  
+  println(SERIAL_PORT);
+
   size(700,700);
   smooth();
   
@@ -71,7 +70,7 @@ void setup() {
 
   // Initialize the ball
   ball = new Particle(width/2, 100, 10);
-  ball.body.applyForce(new Vec2(random(-500, 500), -7000), ball.body.getPosition());
+  ball.body.applyForce(new Vec2(random(-500, 500), -30000), ball.body.getPosition());
   
   // Create boundaries
   wallR = new Boundary(width, height/2, 10, height);
@@ -86,7 +85,7 @@ void setup() {
 void initBox2d() {
   box2d = new Box2DProcessing(this);
   box2d.createWorld();
-  box2d.setGravity(0, 0);
+  box2d.setGravity(0, -1);
   box2d.listenForCollisions();
 }
 
@@ -113,8 +112,8 @@ void draw() {
   } */
 
   /* Update global position based on OSC data */
-  springHuman.update(handX, handY);
-  // springHuman.update(mouseX, mouseY);
+  //springHuman.update(handX, handY);
+  springHuman.update(mouseX, mouseY);
   springHuman.display();
   springCPU.update(box2d.getBodyPixelCoord(ball.body).x, 40);
   springCPU.display();
@@ -127,7 +126,12 @@ void draw() {
   //} 
   
   /* Update local rotation based on serial data */
-  humanPlayer.body.setAngularVelocity(rotation);// - humanPlayer.body.getAngle());
+  //humanPlayer.body.setAngularVelocity(rotation);// - humanPlayer.body.getAngle());
+  // humanPlayer.body.setAngularVelocity(1);
+  humanPlayer.body.setAngularVelocity(-humanPlayer.body.getAngle());// - humanPlayer.body.getAngle());
+  humanPlayer.body.applyAngularImpulse(rotation);
+
+  // println("angle = ", humanPlayer.body.getAngle());
   // TODO: update acceleration?
 
   /* Display all graphic elements */
@@ -200,9 +204,11 @@ void checkIMUData(){
       println(rotX, rotY, acceX, acceY);
     }  
     
-    rotation = -rotY/100 + 0.9;
-    humanPlayer.body.applyForce(new Vec2(5000*acceX, -5000*acceY),
-                              box2d.coordPixelsToWorld(mouseX, mouseY));
+    rotation = 3*rotY + 0.0;
+    println(rotation);
+    
+    //humanPlayer.body.applyForce(new Vec2(5000*acceX, -5000*acceY),
+    //                          box2d.coordPixelsToWorld(mouseX, mouseY));
     // TODO: acceleration
   } 
 }
@@ -220,6 +226,6 @@ String getHapticData(float x_paddle, float y_paddle, float x_ball, float y_ball)
   popMatrix();
   
   res += v.x + "," + v.y + "\n";
-  println(res);
+  // println(res);
   return res;
 }

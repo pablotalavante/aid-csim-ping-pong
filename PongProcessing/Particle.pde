@@ -61,6 +61,8 @@ class Particle {
     // Set its position
     bd.position = box2d.coordPixelsToWorld(x, y);
     bd.type = BodyType.DYNAMIC;
+    bd.bullet = true;
+    bd.linearDamping = 0.7;
     body = box2d.createBody(bd);
 
     // Make the body's shape a circle
@@ -73,7 +75,7 @@ class Particle {
     // Parameters that affect physics
     fd.density = 1;
     fd.friction = 0.01;
-    fd.restitution = 0.5;
+    fd.restitution = 0.99;
 
     // Attach fixture to body
     body.createFixture(fd);
