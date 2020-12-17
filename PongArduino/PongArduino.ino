@@ -5,7 +5,7 @@ uint8_t i2CAddressMotor = 0x30;
 
 LSM6DS3 myIMU(I2C_MODE, 0x6A); 
 
-String hapticData;
+String hapticData = "";
 float hapticX; 
 float hapticY; 
 
@@ -22,7 +22,12 @@ void setup() {
 void loop() {
   
   if (Serial.available()) { 
-    hapticData = Serial.readStringUntil('\n'); 
+    char incoming = Serial.read();
+    if (incoming !='\n') {
+      hapticData += incoming;
+    } if (incoming == '\n'){
+       break;
+    } 
   }
   splitHapticData();
   
