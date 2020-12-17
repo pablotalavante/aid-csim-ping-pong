@@ -12,7 +12,6 @@ import processing.serial.*;
 
 /* HandPose OSC comm */
 OscP5 myOSC;
-
 // NetAddress myRemoteLocation;
 static final int OSC_PORT = 8008;
 float topX, topY, botX, botY;
@@ -28,26 +27,18 @@ String hapticStr;
 
 /* Box2D */
 Box2DProcessing box2d;
-// ArrayList<Particle> particles; 
 
 Particle ball;
 Boundary wallL, wallR, wallT, wallB;
 Box humanPlayer, cpuPlayer; // Players as rectangle paddles
 Spring springHuman, springCPU; // Springs that will attach to the boxes
 
-/* Perlin noise values */
-// float xOff = 0;
-// float yOff = 1000;
-
 float rotation = 0; // Paddle rotation
 // TODO: Paddle acceleration?
 
-/* Haptic feedback */
 Haptic haptic; // The matrix displaying haptic patterns
 
 void setup() {
-  println(SERIAL_PORT);
-
   size(700,700);
   smooth();
   
@@ -105,33 +96,21 @@ void draw() {
   background(255);
   checkIMUData();
   box2d.step();
-  
-  /* if (random(1) < 0.2) {
-    float sz = random(4,8);
-    particles.add(new Particle(width/2,-20,sz));
-  } */
 
   /* Update global position based on OSC data */
-  //springHuman.update(handX, handY);
-  springHuman.update(mouseX, mouseY);
+  springHuman.update(handX, handY);
+  // springHuman.update(mouseX, mouseY);
   springHuman.display();
   springCPU.update(box2d.getBodyPixelCoord(ball.body).x, 40);
   springCPU.display();
-   
-  // else {
-    // springHuman.update(width/2, height/2);
-    // Make an x,y coordinate out of perlin noise
-    // xOff += 0.00;
-    // yOff += 0.00; 
-  //} 
   
   /* Update local rotation based on serial data */
-  //humanPlayer.body.setAngularVelocity(rotation);// - humanPlayer.body.getAngle());
-  // humanPlayer.body.setAngularVelocity(1);
-  humanPlayer.body.setAngularVelocity(-humanPlayer.body.getAngle());// - humanPlayer.body.getAngle());
+  humanPlayer.body.setAngularVelocity(-humanPlayer.body.getAngle());
   humanPlayer.body.applyAngularImpulse(rotation);
-
+  
+  // humanPlayer.body.setAngularVelocity(rotation - humanPlayer.body.getAngle());
   // println("angle = ", humanPlayer.body.getAngle());
+  
   // TODO: update acceleration?
 
   /* Display all graphic elements */
@@ -151,7 +130,7 @@ void draw() {
   hapticStr = getHapticData(box2d.getBodyPixelCoord(humanPlayer.body).x,
               box2d.getBodyPixelCoord(humanPlayer.body).y,
               box2d.getBodyPixelCoord(ball.body).x,
-              box2d.getBodyPixelCoord(ball.body).y); // define haptic id 
+              box2d.getBodyPixelCoord(ball.body).y);  
               
   mySerial.write(hapticStr); // send to Arduino
   mySerial.clear();
@@ -161,9 +140,6 @@ void draw() {
   // rect((1 - topX) * width, (topY + 0.5) * height, (1 - botX) * width, (botY + 0.5) * height);
   
   stroke(1);
-  // TODO: map the range of movement @HandPose app and @Processing app
-  handX = ((1 - topX) * width + (1 - botX) * width)/2;
-  handY = (botY + 0.5) * height;
 }
 
 // listen to HandPose
@@ -178,8 +154,8 @@ void oscEvent(OscMessage msg) {
       botY = msg.get(1).floatValue()/1280;
       println(botX, botY);
    }
-   println("HandPose:");
-   println(handX, handY);
+   handX = ((1 - topX) * width + (1 - botX) * width)/2;
+   handY = (botY + 0.5) * height;
 }
 
 // listen to Arduino
@@ -191,20 +167,17 @@ void checkIMUData(){
        String[] res = valFromSerial.split(",");
        rotX = Float.parseFloat(res[0]);
        rotY = Float.parseFloat(res[1]);
-       acceX = Float.parseFloat(res[2]);
-       acceY = Float.parseFloat(res[3]);
+       // acceX = Float.parseFloat(res[2]);
+       // acceY = Float.parseFloat(res[3]);
       }
       catch (Exception e)
       {
          rotX = 0;
          rotY = 0;
-         acceX = 0;
-         acceY = 0;
+         // acceX = 0;
+         // acceY = 0;
       }
-      //println("IMU:");
-      //println(rotX, rotY, acceX, acceY);
     }  
-    
     rotation = 3*rotY + 0.0;
     //println(rotation);
     
