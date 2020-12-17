@@ -1,7 +1,7 @@
 class Haptic {
-  int x = 3;
-  int y = 3;
-  float[][] hapticPosition = new float[3][3];
+  int x = 2;
+  int y = 2;
+  float[][] hapticPosition = new float[2][2];
   
   // Constructor
   Haptic(){

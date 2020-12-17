@@ -85,7 +85,7 @@ void setup() {
 void initBox2d() {
   box2d = new Box2DProcessing(this);
   box2d.createWorld();
-  box2d.setGravity(0, -1);
+  box2d.setGravity(0, -2);
   box2d.listenForCollisions();
 }
 
@@ -144,7 +144,8 @@ void draw() {
   ball.display();
   
   /* Send haptic feedback to Arduino */
-  haptic.updatePosition(box2d.getBodyPixelCoord(ball.body).x, box2d.getBodyPixelCoord(ball.body).y);
+  haptic.updatePosition(box2d.getBodyPixelCoord(ball.body).x,
+                        box2d.getBodyPixelCoord(ball.body).y);
   haptic.display(); // display haptic patterns
   
   hapticStr = getHapticData(box2d.getBodyPixelCoord(humanPlayer.body).x,
@@ -200,15 +201,16 @@ void checkIMUData(){
          acceX = 0;
          acceY = 0;
       }
-      println("IMU:");
-      println(rotX, rotY, acceX, acceY);
+      //println("IMU:");
+      //println(rotX, rotY, acceX, acceY);
     }  
     
     rotation = 3*rotY + 0.0;
-    println(rotation);
+    //println(rotation);
     
-    //humanPlayer.body.applyForce(new Vec2(5000*acceX, -5000*acceY),
-    //                          box2d.coordPixelsToWorld(mouseX, mouseY));
+    //humanPlayer.body.applyLinearImpulse(new Vec2(10*acceX, 10*acceY),
+    //                           new Vec2(box2d.getBodyPixelCoord(humanPlayer.body).x,
+    //                               box2d.getBodyPixelCoord(humanPlayer.body).y), true);
     // TODO: acceleration
   } 
 }
@@ -222,10 +224,9 @@ String getHapticData(float x_paddle, float y_paddle, float x_ball, float y_ball)
   translate(400, 400);
   rotate(-PI/4);
   // line(0, 0, -v.x, -v.y);
-  // println(v.x);
   popMatrix();
   
   res += v.x + "," + v.y + "\n";
-  // println(res);
+  println(res);
   return res;
 }

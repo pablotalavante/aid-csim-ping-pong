@@ -21,7 +21,7 @@ void setup() {
 
 void loop() {
   
-  if (Serial.available()) { 
+  while (Serial.available()) {
     char incoming = Serial.read();
     if (incoming !='\n') {
       hapticData += incoming;
@@ -89,6 +89,7 @@ void vibrate(float x, float y) {
   }
   
   controlMotor(pwm1, pwm2, pwm3, pwm4);
+  // controlMotor(0, 0, 200, 0);
   delay(10);
 } 
 

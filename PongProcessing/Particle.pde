@@ -62,7 +62,7 @@ class Particle {
     bd.position = box2d.coordPixelsToWorld(x, y);
     bd.type = BodyType.DYNAMIC;
     bd.bullet = true;
-    bd.linearDamping = 0.7;
+    bd.linearDamping = 0.3;
     body = box2d.createBody(bd);
 
     // Make the body's shape a circle
@@ -73,7 +73,7 @@ class Particle {
     fd.shape = cs;
     
     // Parameters that affect physics
-    fd.density = 1;
+    fd.density = 2;
     fd.friction = 0.01;
     fd.restitution = 0.99;
 
