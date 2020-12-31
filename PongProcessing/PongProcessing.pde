@@ -178,7 +178,7 @@ void checkIMUData(){
          // acceY = 0;
       }
     }  
-    rotation = 3*rotY + 0.0;
+    rotation = 3 * rotY + 0.0;
     //println(rotation);
     
     //humanPlayer.body.applyLinearImpulse(new Vec2(10*acceX, 10*acceY),
