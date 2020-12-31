@@ -46,13 +46,13 @@ void sendIMUData() {
   Serial.print(myIMU.readFloatGyroX(), 3); // rotation X-axis - roll
   Serial.print(",");
   Serial.print(myIMU.readFloatGyroY(), 3); // rotation Y-axis - pitch
+  Serial.print(",");
+  Serial.print(myIMU.readFloatGyroZ(), 3); // rotation Z-axis - yaw
   // Serial.print(",");
-  // Serial.print(myIMU.readFloatGyroZ(), 0); // rotation Z-axis - yaw
-  Serial.print(",");
   
-  Serial.print(myIMU.readFloatAccelX(), 3);
-  Serial.print(",");
-  Serial.print(myIMU.readFloatAccelY(), 3);
+  // Serial.print(myIMU.readFloatAccelX(), 3);
+  // Serial.print(",");
+  // Serial.print(myIMU.readFloatAccelY(), 3);
   // Serial.print(",");
   // Serial.print(imu.readFloatAccelZ(), 0);
   Serial.println();
@@ -96,7 +96,7 @@ void vibrate(float x, float y) {
     pwm1 = (int16_t) map(y, 0, 500, 1023, 0); // M1 
   }
 
-  controlMotor(pwm1, pwm2, pwm3, pwm4);  
+  controlMotor(pwm1, pwm2, pwm3, pwm4); 
   delay(10);
   
 } 

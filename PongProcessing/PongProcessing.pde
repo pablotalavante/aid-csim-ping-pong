@@ -22,7 +22,7 @@ Serial mySerial;
 static final String SERIAL_PORT = Serial.list()[1]; // check the correct port in Arduino
 static final int BAUDRATE = 115200; // check the correct baud rate
 String valFromSerial;
-float rotX, rotY, acceX, acceY; 
+float rotX, rotY, rotZ; 
 String hapticStr;
 
 /* Box2D */
@@ -105,11 +105,12 @@ void draw() {
   springCPU.display();
   
   /* Update local rotation based on serial data */
-  humanPlayer.body.setAngularVelocity(-humanPlayer.body.getAngle());
-  humanPlayer.body.applyAngularImpulse(rotation);
   
-  // humanPlayer.body.setAngularVelocity(rotation - humanPlayer.body.getAngle());
-  // println("angle = ", humanPlayer.body.getAngle());
+  // humanPlayer.body.setAngularVelocity(-humanPlayer.body.getAngle());
+  // humanPlayer.body.applyAngularImpulse(rotation);
+  
+  humanPlayer.body.setAngularVelocity(rotation - humanPlayer.body.getAngle());
+  println("angle = ", humanPlayer.body.getAngle());
   
   // TODO: update acceleration?
 
@@ -123,8 +124,9 @@ void draw() {
   ball.display();
   
   /* Send haptic feedback to Arduino */
-  haptic.updatePosition(box2d.getBodyPixelCoord(ball.body).x,
+  haptic.updatePosition(box2d.getBodyPixelCoord(ball.body).x, 
                         box2d.getBodyPixelCoord(ball.body).y);
+                        
   haptic.display(); // display haptic patterns
   
   hapticStr = getHapticData(box2d.getBodyPixelCoord(humanPlayer.body).x,
@@ -145,17 +147,16 @@ void draw() {
 // listen to HandPose
 void oscEvent(OscMessage msg) {
    if(msg.checkAddrPattern("/boundingBox/topLeft") == true) {
-      topX = msg.get(0).floatValue()/1280;
-      topY = msg.get(1).floatValue()/1280;
-      println(topX, topY);
+      topX = msg.get(0).floatValue()/720;
+      topY = msg.get(1).floatValue()/720;
    }
    if(msg.checkAddrPattern("/boundingBox/bottomRight") == true) { 
-      botX = msg.get(0).floatValue()/1280;
-      botY = msg.get(1).floatValue()/1280;
-      println(botX, botY);
+      botX = msg.get(0).floatValue()/720;
+      botY = msg.get(1).floatValue()/720;
    }
+   
    handX = ((1 - topX) * width + (1 - botX) * width)/2;
-   handY = (botY + 0.5) * height;
+   handY = (botY + 0.25) * height;
 }
 
 // listen to Arduino
@@ -167,23 +168,20 @@ void checkIMUData(){
        String[] res = valFromSerial.split(",");
        rotX = Float.parseFloat(res[0]);
        rotY = Float.parseFloat(res[1]);
-       // acceX = Float.parseFloat(res[2]);
-       // acceY = Float.parseFloat(res[3]);
+       rotZ = Float.parseFloat(res[2]);
       }
       catch (Exception e)
       {
          rotX = 0;
          rotY = 0;
-         // acceX = 0;
-         // acceY = 0;
+         rotZ = 0;
       }
     }  
     rotation = 3 * rotY + 0.0;
-    //println(rotation);
-    
-    //humanPlayer.body.applyLinearImpulse(new Vec2(10*acceX, 10*acceY),
-    //                           new Vec2(box2d.getBodyPixelCoord(humanPlayer.body).x,
-    //                               box2d.getBodyPixelCoord(humanPlayer.body).y), true);
+    println("rotation = ", rotation);   
+    // humanPlayer.body.applyLinearImpulse(new Vec2(10*acceX, 10*acceY), 
+    //                                     new Vec2(box2d.getBodyPixelCoord(humanPlayer.body).x, 
+    //                                     box2d.getBodyPixelCoord(humanPlayer.body).y), true);
     // TODO: acceleration
   } 
 }
@@ -200,6 +198,6 @@ String getHapticData(float x_paddle, float y_paddle, float x_ball, float y_ball)
   popMatrix();
   
   res += v.x + "," + v.y + "\n";
-  println(res);
+  // println(res);
   return res;
 }
