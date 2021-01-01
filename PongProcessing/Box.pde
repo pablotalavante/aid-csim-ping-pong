@@ -1,22 +1,22 @@
 class Box {
-  // A Body with a width and height
+  // a body with a width and height
   Body body;
   float w;
   float h;
 
-  // Constructor
+  // constructor
   Box(float x_, float y_) {
     float x = x_;
     float y = y_;
     w = 120;
     h = 24;
     
-    // Add the box to the Box2d world
+    // add the box to the Box2d world
     makeBody(new Vec2(x, y), w, h);
     body.setUserData(this);
   }
 
-  // Remove the particle from the Box2d world
+  // remove the particle from the Box2d world
   void killBody() {
     box2d.destroyBody(body);
   }
@@ -28,11 +28,11 @@ class Box {
     return inside;
   }
 
-  // Draw the box
+  // draw the box
   void display() {
-    // Get screen position
+    // get screen position
     Vec2 pos = box2d.getBodyPixelCoord(body);
-    // Get angle of rotation
+    // get angle of rotation
     float a = body.getAngle();
 
     rectMode(PConstants.CENTER);
@@ -45,34 +45,33 @@ class Box {
     popMatrix();
   }
 
-  // Add the rectangle to the Box2d world
+  // add the rectangle to the Box2d world
   void makeBody(Vec2 center, float w_, float h_) {
-    
-    // Define and create the body
+    // define and create the body
     BodyDef bd = new BodyDef();
     bd.type = BodyType.DYNAMIC;
     bd.position.set(box2d.coordPixelsToWorld(center));
     body = box2d.createBody(bd);
 
-    // Define a polygon (this is what we use for a rectangle)
+    // define a polygon (this is what we use for a rectangle)
     PolygonShape sd = new PolygonShape();
     float box2dW = box2d.scalarPixelsToWorld(w_/2);
     float box2dH = box2d.scalarPixelsToWorld(h_/2);
     sd.setAsBox(box2dW, box2dH);
 
-    // Define a fixture
+    // define a fixture
     FixtureDef fd = new FixtureDef();
     fd.shape = sd;
     
-    // Parameters that affect physics
+    // parameters that affect physics
     fd.density = 1;
     fd.friction = 0.3;
     fd.restitution = 0.5;
 
     body.createFixture(fd);
-    //body.setMassFromShapes();
+    // body.setMassFromShapes();
 
-    // Initialize random velocity
+    // initialize random velocity
     body.setLinearVelocity(new Vec2(random(-5, 5), random(2, 5)));
     body.setAngularVelocity(0);
   }

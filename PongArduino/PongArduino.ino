@@ -1,27 +1,28 @@
 #include <SparkFunLSM6DS3.h>
+#include <SensorFusion.h>
 #include <Wire.h>
  
 uint8_t i2CAddressMotor = 0x30;
-
 String hapticData = "";
 float hapticX, hapticY; 
 
 LSM6DS3 myIMU(I2C_MODE, 0x6A);
+SF fusion;
+float gX, gY, gZ, aX, aY, aZ, mX, mY, mZ;
+float pitch, roll, yaw;
+float deltat;
 
 void setup() {
-  
-  Serial.begin(115200); // check the Serial Monitor's baud rate
+  Serial.begin(115200); // check Serial Monitor's baud rate
   Wire.begin();
   myIMU.begin();
   delay(500);
   
   enableDriver();
   controlMotor(0, 0, 0, 0);
-  
 }
 
 void loop() {
-  
   while (Serial.available()) {
     char incoming = Serial.read();
     if (incoming !='\n') {
@@ -33,45 +34,46 @@ void loop() {
   
   splitHapticData();
   vibrate(hapticX, hapticY);
-  // TODO: interrupt?
+  // TODO: interrupt
   
   sendIMUData();
   delay(500);
-  
 }
 
 /* send IMU data over serial port */
 void sendIMUData() {
+  gX = myIMU.readFloatGyroX() * DEG_TO_RAD; 
+  gY = myIMU.readFloatGyroY() * DEG_TO_RAD; 
+  gZ = myIMU.readFloatGyroZ() * DEG_TO_RAD; 
+  aX = myIMU.readFloatAccelX();
+  aY = myIMU.readFloatAccelY();
+  aZ = myIMU.readFloatAccelZ();
+
+  deltat = fusion.deltatUpdate();
+  fusion.MahonyUpdate(gX, gY, gZ, aX, aY, aZ, deltat);
+
+  roll = fusion.getRoll(); // rotation X-axis - roll
+  pitch = fusion.getPitch(); // rotation Y-axis - pitch
+  yaw = fusion.getYaw(); // rotation Z-axis - yaw
   
-  Serial.print(myIMU.readFloatGyroX(), 3); // rotation X-axis - roll
+  Serial.print(roll, 3); 
   Serial.print(",");
-  Serial.print(myIMU.readFloatGyroY(), 3); // rotation Y-axis - pitch
+  Serial.print(pitch, 3); 
   Serial.print(",");
-  Serial.print(myIMU.readFloatGyroZ(), 3); // rotation Z-axis - yaw
-  // Serial.print(",");
-  
-  // Serial.print(myIMU.readFloatAccelX(), 3);
-  // Serial.print(",");
-  // Serial.print(myIMU.readFloatAccelY(), 3);
-  // Serial.print(",");
-  // Serial.print(imu.readFloatAccelZ(), 0);
+  Serial.print(yaw, 3); 
   Serial.println();
-  
 }
 
 /* split haptic data received from Processing */
 void splitHapticData() {
-  
   int commaIndex = hapticData.indexOf(',');
   hapticX = hapticData.substring(0, commaIndex).toFloat();
   hapticY = hapticData.substring(commaIndex + 1).toFloat();
   hapticData = "";
-  
 }
 
 /* control motors to send vibrotactile feedback */
 void vibrate(float x, float y) { 
-  
   int16_t pwm1 = 0;
   int16_t pwm2 = 0;
   int16_t pwm3 = 0;
@@ -80,7 +82,7 @@ void vibrate(float x, float y) {
   x = constrain(x, -500, 500);
   y = constrain(y, -500, 500);
   
-  // TODO: change time delay?
+  // TODO: change time delay
   // float dis = sqrt((abs(x) * abs(x)) + (abs(b) * abs(b))); 
   // int16_t timeDelay = (int16_t) map(dis, 0, 500, 0, 1500);
    
@@ -98,7 +100,6 @@ void vibrate(float x, float y) {
 
   controlMotor(pwm1, pwm2, pwm3, pwm4); 
   delay(10);
-  
 } 
 
 /* sending PWM signals to 4 motors */
@@ -110,8 +111,8 @@ void controlMotor(int16_t m1_pwm, int16_t m2_pwm, int16_t m3_pwm, int16_t m4_pwm
 }
 
 /* change delay time */
-void changeDelay(int16_t delayTime) { // default: 200(ms)
-  i2cWrite2bytes(i2CAddressMotor, 0x20, delayTime);
+void changeDelay(int16_t delayTime) { 
+  i2cWrite2bytes(i2CAddressMotor, 0x20, delayTime); // default: 200(ms)
 }
 
 void enableDriver() {

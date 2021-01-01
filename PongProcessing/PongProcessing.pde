@@ -22,21 +22,17 @@ Serial mySerial;
 static final String SERIAL_PORT = Serial.list()[1]; // check the correct port in Arduino
 static final int BAUDRATE = 115200; // check the correct baud rate
 String valFromSerial;
-float rotX, rotY, rotZ; 
+float roll, pitch, yaw; 
+float rotation = 0; // paddle rotation
 String hapticStr;
+Haptic haptic; // matrix displaying haptic patterns
 
 /* Box2D */
 Box2DProcessing box2d;
-
 Particle ball;
 Boundary wallL, wallR, wallT, wallB;
-Box humanPlayer, cpuPlayer; // Players as rectangle paddles
-Spring springHuman, springCPU; // Springs that will attach to the boxes
-
-float rotation = 0; // Paddle rotation
-// TODO: Paddle acceleration?
-
-Haptic haptic; // The matrix displaying haptic patterns
+Box humanPlayer, cpuPlayer; // players as rectangle paddles
+Spring springHuman, springCPU; // springs that will attach to the boxes
 
 void setup() {
   size(700,700);
@@ -46,30 +42,29 @@ void setup() {
   initOSC();
   initSerial();
 
-  // Initialize the players
+  // initialize the players
   humanPlayer = new Box(width/2, height/2);
   cpuPlayer = new Box(width/2, 40);
   
-  // Initialize the springs - they don't really get initialized until the mouse is clicked
+  // initialize the springs - they don't really get initialized until the mouse is clicked
   springHuman = new Spring();
   springHuman.update(500, 2);
   springHuman.bind(width/2, height/2, humanPlayer);
-  
   springCPU = new Spring();
   springCPU.update(100, 0.8);
   springCPU.bind(width/2, 40, cpuPlayer);
 
-  // Initialize the ball
+  // initialize the ball
   ball = new Particle(width/2, 100, 10);
   ball.body.applyForce(new Vec2(random(-500, 500), -30000), ball.body.getPosition());
   
-  // Create boundaries
+  // create boundaries
   wallR = new Boundary(width, height/2, 10, height);
   wallL = new Boundary(0, height/2, 10, height);
   wallT = new Boundary(width/2, 0, width, 10);
   wallB = new Boundary(width/2, height, width, 10);
   
-  // Initialize the haptic matrix
+  // initialize the haptic matrix
   haptic = new Haptic();
 }
 
@@ -92,29 +87,23 @@ void initSerial() {
 }
 
 void draw() {
-  
   background(255);
   checkIMUData();
   box2d.step();
 
-  /* Update global position based on OSC data */
+  /* update global position based on OSC data */
   springHuman.update(handX, handY);
   // springHuman.update(mouseX, mouseY);
   springHuman.display();
   springCPU.update(box2d.getBodyPixelCoord(ball.body).x, 40);
   springCPU.display();
   
-  /* Update local rotation based on serial data */
-  
-  // humanPlayer.body.setAngularVelocity(-humanPlayer.body.getAngle());
-  // humanPlayer.body.applyAngularImpulse(rotation);
-  
-  humanPlayer.body.setAngularVelocity(rotation - humanPlayer.body.getAngle());
-  println("angle = ", humanPlayer.body.getAngle());
-  
-  // TODO: update acceleration?
+  /* update local rotation based on serial data */
+  humanPlayer.body.setAngularVelocity(-humanPlayer.body.getAngle());
+  humanPlayer.body.applyAngularImpulse(rotation);
+  // println("angle = ", humanPlayer.body.getAngle());
 
-  /* Display all graphic elements */
+  /* display and update all graphic elements */
   wallR.display();
   wallL.display();
   wallT.display();
@@ -123,24 +112,21 @@ void draw() {
   cpuPlayer.display();
   ball.display();
   
-  /* Send haptic feedback to Arduino */
+  /* send haptic feedback to Arduino */
   haptic.updatePosition(box2d.getBodyPixelCoord(ball.body).x, 
-                        box2d.getBodyPixelCoord(ball.body).y);
-                        
-  haptic.display(); // display haptic patterns
+                        box2d.getBodyPixelCoord(ball.body).y);                  
+  haptic.display(); // display visual haptic patterns
   
   hapticStr = getHapticData(box2d.getBodyPixelCoord(humanPlayer.body).x,
               box2d.getBodyPixelCoord(humanPlayer.body).y,
               box2d.getBodyPixelCoord(ball.body).x,
-              box2d.getBodyPixelCoord(ball.body).y);  
-              
+              box2d.getBodyPixelCoord(ball.body).y);             
   mySerial.write(hapticStr); // send to Arduino
   mySerial.clear();
   
   stroke(5);
   rectMode(CORNERS);
   // rect((1 - topX) * width, (topY + 0.5) * height, (1 - botX) * width, (botY + 0.5) * height);
-  
   stroke(1);
 }
 
@@ -154,7 +140,6 @@ void oscEvent(OscMessage msg) {
       botX = msg.get(0).floatValue()/720;
       botY = msg.get(1).floatValue()/720;
    }
-   
    handX = ((1 - topX) * width + (1 - botX) * width)/2;
    handY = (botY + 0.25) * height;
 }
@@ -163,26 +148,23 @@ void oscEvent(OscMessage msg) {
 void checkIMUData(){
   if (mySerial != null) {
     while(mySerial.available() > 0) {  
-      valFromSerial = mySerial.readStringUntil('\n');   
+      valFromSerial = mySerial.readStringUntil('\n'); 
+      println("val = ", valFromSerial);
       try {
        String[] res = valFromSerial.split(",");
-       rotX = Float.parseFloat(res[0]);
-       rotY = Float.parseFloat(res[1]);
-       rotZ = Float.parseFloat(res[2]);
+       roll = Float.parseFloat(res[0]);
+       pitch = Float.parseFloat(res[1]);
+       yaw = Float.parseFloat(res[2]);
       }
       catch (Exception e)
       {
-         rotX = 0;
-         rotY = 0;
-         rotZ = 0;
+         roll = 0;
+         pitch = 0;
+         yaw = 0;
       }
     }  
-    rotation = 3 * rotY + 0.0;
-    println("rotation = ", rotation);   
-    // humanPlayer.body.applyLinearImpulse(new Vec2(10*acceX, 10*acceY), 
-    //                                     new Vec2(box2d.getBodyPixelCoord(humanPlayer.body).x, 
-    //                                     box2d.getBodyPixelCoord(humanPlayer.body).y), true);
-    // TODO: acceleration
+    rotation = roll * 10;
+    // println("rotation = ", rotation);
   } 
 }
 
