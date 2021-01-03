@@ -47,8 +47,8 @@ void setup() {
   size(700,700);
   smooth();
   
-  font = loadFont("fonts/Fipps-Regular.otf");
-  textFont(font, 32);
+  font = loadFont("data/Fipps-Regular-92.vlw");
+  textFont(font, 92);
   
   initOSC();
   initSerial();
@@ -86,8 +86,9 @@ void draw() {
   } else if (GAME_STATE == 2){
     gameStep();
     checkPoint();
+  } else if (GAME_STATE == 3){
+    showEnd();
   }
-  
 }
 
 // listen to HandPose
@@ -215,11 +216,11 @@ void gameStep(){
 }
 
 void checkPoint(){
-  if(box2d.getBodyPixelCoord(ball.body).y < -20){
+  if(box2d.getBodyPixelCoord(ball.body).y < -50){
     scorePlayer++;
     GAME_STATE = 0;
     currentFrame = frameCount;
-  } else if (box2d.getBodyPixelCoord(ball.body).y > height+20){
+  } else if (box2d.getBodyPixelCoord(ball.body).y > height+50){
     scoreCPU++;
     GAME_STATE = 0;
     currentFrame = frameCount;
@@ -228,20 +229,53 @@ void checkPoint(){
 
 void showScore(){
   int diff = frameCount - currentFrame;
+  if (scorePlayer > 4 || scoreCPU > 4){
+    GAME_STATE = 3;
+  } else {
   background(255);
-  textSize(92);
   textAlign(CENTER, CENTER);
   fill(0);
   background(255);
-  text("START", width/2, height/2);
-  text(scorePlayer + " - " + scoreCPU, width/2, height/2 - 150);
-  text(countdown, width/2, height/2 + 150);
-  if (diff > 50){
+  //text("START", width/2, height/2);
+  textSize(45);
+  text("YOU       CPU", width/2, height/2 - 200);
+  textSize(92);
+  text(scorePlayer + " - " + scoreCPU, width/2, height/2 - 70);
+  if (countdown >0) text(countdown, width/2, height/2 + 130);
+  if (countdown == 0) text("START", width/2, height/2 + 130);
+  if (diff > 40){
     countdown--;
     currentFrame = frameCount;
     if (countdown<0){
       countdown = 3;
       GAME_STATE = 1;
     }
+  }
+  }
+}
+
+void showEnd(){
+  background(255);
+  textAlign(CENTER, CENTER);
+  fill(0);
+  background(255);
+  textSize(92);
+  if (scorePlayer > scoreCPU){
+    text("YOU WIN", width/2, height/2 -100);
+  } else {
+    text("YOU LOSE", width/2, height/2 -100);
+  }
+  textSize(45);
+  text("press R\nto play again", width/2, height/2 + 80);
+  // text("to play again", width/2, height/2 + 110);
+
+}
+
+void keyPressed(){
+  if((key == 'R' || key == 'r') & GAME_STATE==3){
+    scorePlayer = 0;
+    scoreCPU = 0;
+    countdown = 3;
+    GAME_STATE = 0;
   }
 }
